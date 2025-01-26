@@ -1,5 +1,5 @@
-# CS449 in Winter 2023
+# MSAI437 for Winter2025
 
-Class materials for CS449
+Class materials for MSAI437
 
 Course designed by Bryan Pardo
