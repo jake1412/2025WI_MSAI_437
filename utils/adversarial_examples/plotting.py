@@ -1,23 +1,19 @@
-import os
 import copy
-import librosa as li
-import seaborn as sns
-import matplotlib.pyplot as plt
+import os
+from pathlib import Path
 from typing import Union
 
-from tqdm import tqdm
-
-from pathlib import Path
-
+import IPython.display as ipd
+import librosa as li
+import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
-
 from torchvision import datasets, transforms
-import IPython.display as ipd
+from tqdm import tqdm
 
 
 def play_audiomnist(x):
@@ -42,9 +38,7 @@ def plot_audiomnist(x: torch.Tensor, y: Union[int, torch.Tensor], model: nn.Modu
         y = y.clone().detach().cpu().item()
 
     # use model to compute class scores and predicted label
-    y_scores = torch.nn.functional.softmax(
-        model(x.reshape(1, 1, 16000).to(device)), dim=-1
-    ).detach().cpu()
+    y_scores = torch.nn.functional.softmax(model(x.reshape(1, 1, 16000).to(device)), dim=-1).detach().cpu()
     y_pred = y_scores.argmax()
 
     # initialize plot
@@ -53,28 +47,28 @@ def plot_audiomnist(x: torch.Tensor, y: Union[int, torch.Tensor], model: nn.Modu
     linewidth = 2.0
 
     # image plot
-    axs[0].plot(x.squeeze().numpy(), 'k-')
-    axs[0].set_xlabel('Sample idx')
-    axs[0].set_ylabel('Amplitude')
+    axs[0].plot(x.squeeze().numpy(), "k-")
+    axs[0].set_xlabel("Sample idx")
+    axs[0].set_ylabel("Amplitude")
 
     # class scores plot
     axs[1].bar(
         list(range(0, 10)),
         y_scores.flatten().detach().cpu().numpy(),
         width,
-        color='black',
-        label='class scores',
-        edgecolor='black',
-        linewidth=linewidth
+        color="black",
+        label="class scores",
+        edgecolor="black",
+        linewidth=linewidth,
     )
 
     # formatting
     fig.suptitle(f"True Label: {y}, Predicted Label: {y_pred}", y=1.1)
     axs[1].grid(False)
-    axs[1].spines['left'].set_linewidth(linewidth)
+    axs[1].spines["left"].set_linewidth(linewidth)
     axs[1].set_xlim(-1, 10)
     axs[1].tick_params(bottom=True, left=True)
-    axs[1].set_yscale('log')
+    axs[1].set_yscale("log")
     axs[1].set_xticks(list(range(0, 10)))
     sns.despine(bottom=True)
     plt.tight_layout()
@@ -99,9 +93,7 @@ def plot_mnist(x: torch.Tensor, y: Union[int, torch.Tensor], model: nn.Module):
         y = y.clone().detach().cpu()
 
     # use model to compute class scores and predicted label
-    y_scores = torch.nn.functional.softmax(
-        model(x.reshape(1, 1, 28, 28).to(device)), dim=-1
-    ).detach().cpu()
+    y_scores = torch.nn.functional.softmax(model(x.reshape(1, 1, 28, 28).to(device)), dim=-1).detach().cpu()
     y_pred = y_scores.argmax()
 
     # initialize plot
@@ -111,33 +103,27 @@ def plot_mnist(x: torch.Tensor, y: Union[int, torch.Tensor], model: nn.Module):
     linewidth = 2.0
 
     # image plot
-    axs[0].imshow(x.squeeze().numpy(), cmap='gray')
+    axs[0].imshow(x.squeeze().numpy(), cmap="gray")
 
     # class scores plot
     axs[1].bar(
         list(range(0, 10)),
         y_scores.flatten().detach().cpu().numpy(),
         width,
-        color='black',
-        label='class scores',
-        edgecolor='black',
-        linewidth=linewidth
+        color="black",
+        label="class scores",
+        edgecolor="black",
+        linewidth=linewidth,
     )
 
     # formatting
     fig.suptitle(f"True Label: {y}, Predicted Label: {y_pred}", y=1.1)
     axs[1].grid(False)
-    axs[1].spines['left'].set_linewidth(linewidth)
+    axs[1].spines["left"].set_linewidth(linewidth)
     axs[1].set_xlim(-1, 10)
     axs[1].tick_params(bottom=True, left=True)
-    axs[1].set_yscale('log')
+    axs[1].set_yscale("log")
     axs[1].set_xticks(list(range(0, 10)))
     sns.despine(bottom=True)
     plt.tight_layout()
     plt.show()
-
-
-
-
-
-

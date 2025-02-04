@@ -1,18 +1,15 @@
-import torch
-import torch.nn as nn
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
+import torch.nn as nn
 
 ################################################################################
 # Some simple plotting utilities
 ################################################################################
 
 
-def plot_data(data: np.ndarray,
-              labels: np.ndarray,
-              ax: matplotlib.axes.Axes = None):
+def plot_data(data: np.ndarray, labels: np.ndarray, ax: matplotlib.axes.Axes = None):
     """
     A helper function to plot our data sets
 
@@ -36,19 +33,9 @@ def plot_data(data: np.ndarray,
 
     if ax is None:
         ax = plt
-    ax.plot(
-        data.T[0, pos_idx],
-        data.T[1, pos_idx],
-        'r^',
-        label='positive'
-    )
-    ax.plot(
-        data.T[0, neg_idx],
-        data.T[1, neg_idx],
-        'bo',
-        label='negative'
-    )
-    ax.axis('equal')
+    ax.plot(data.T[0, pos_idx], data.T[1, pos_idx], "r^", label="positive")
+    ax.plot(data.T[0, neg_idx], data.T[1, neg_idx], "bo", label="negative")
+    ax.axis("equal")
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(), loc="upper right")
@@ -57,10 +44,7 @@ def plot_data(data: np.ndarray,
         plt.show()
 
 
-def plot_decision_surface(model=None,
-                          axis_limits=(-5, 5, -5, 5),
-                          ax: matplotlib.axes.Axes = None
-                          ):
+def plot_decision_surface(model=None, axis_limits=(-5, 5, -5, 5), ax: matplotlib.axes.Axes = None):
     """
     Creates a grid of points, measures what a model would label each
     point as, and uses this data to draw a region for class +1 and a region for
@@ -84,8 +68,7 @@ def plot_decision_surface(model=None,
 
     # Create a grid of points spanning the entire space displayed in the axis.
     # This will let us draw the decision boundary later
-    xx, yy = np.meshgrid(np.arange(axis_limits[0], axis_limits[1], .05),
-                         np.arange(axis_limits[2], axis_limits[3], .05))
+    xx, yy = np.meshgrid(np.arange(axis_limits[0], axis_limits[1], 0.05), np.arange(axis_limits[2], axis_limits[3], 0.05))
     data = np.concatenate([xx.reshape([1, -1]), yy.reshape([1, -1])]).T
 
     # Predict the class of each point in XGrid, using the classifier.
@@ -104,8 +87,8 @@ def plot_decision_surface(model=None,
         ax = plt
 
     ax.contourf(xx, yy, predicted_labels, cmap=plt.cm.Paired)
-    ax.axis('equal')
-    ax.axis('tight')
+    ax.axis("equal")
+    ax.axis("tight")
 
     if ax is None:
         plt.show()
