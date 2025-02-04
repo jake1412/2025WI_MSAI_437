@@ -1,39 +1,23 @@
-import os
 import copy
-import librosa as li
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from tqdm import tqdm
-
+import os
 from pathlib import Path
 
+import IPython.display as ipd
+import librosa as li
+import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
-
 from torchvision import datasets, transforms
-import IPython.display as ipd
+from tqdm import tqdm
 
 
-def train_audiomnist(model,
-                     device,
-                     train_loader,
-                     test_loader,
-                     epochs: int = 14,
-                     save_model: bool = True
-                     ):
-    optimizer = torch.optim.SGD(
-        model.parameters(), lr=0.001, momentum=0.9
-    )
-    scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer,
-        step_size=1,
-        gamma=1.0
-    )
+def train_audiomnist(model, device, train_loader, test_loader, epochs: int = 14, save_model: bool = True):
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=1.0)
 
     criterion = torch.nn.CrossEntropyLoss()
 
@@ -54,8 +38,7 @@ def train_audiomnist(model,
         model.train()
         for batch_idx, batch_data in enumerate(pbar):
 
-            pbar.set_description(
-                f'Epoch {epoch + 1}, batch {batch_idx + 1}/{len(train_loader)}')
+            pbar.set_description(f"Epoch {epoch + 1}, batch {batch_idx + 1}/{len(train_loader)}")
 
             inputs, labels = batch_data
 
@@ -79,8 +62,7 @@ def train_audiomnist(model,
             pbar = tqdm(test_loader, total=len(test_loader))
             for batch_idx, batch_data in enumerate(pbar):
 
-                pbar.set_description(
-                    f'Validation, batch {batch_idx + 1}/{len(test_loader)}')
+                pbar.set_description(f"Validation, batch {batch_idx + 1}/{len(test_loader)}")
 
                 inputs, labels = batch_data
 
@@ -110,10 +92,7 @@ def train_audiomnist(model,
             print(f"New best accuracy: {accuracy}; saving model")
             best_model = copy.deepcopy(model.state_dict())
             best_acc = accuracy
-            torch.save(
-                best_model,
-                "audionet.pt"
-            )
+            torch.save(best_model, "audionet.pt")
 
         # update step-size scheduler
         scheduler.step()
@@ -133,8 +112,7 @@ def test_audiomnist(model, device, test_loader):
         pbar = tqdm(test_loader, total=len(test_loader))
         for batch_idx, batch_data in enumerate(pbar):
 
-            pbar.set_description(
-                f'Validation, batch {batch_idx + 1}/{len(test_loader)}')
+            pbar.set_description(f"Validation, batch {batch_idx + 1}/{len(test_loader)}")
 
             inputs, labels = batch_data
 
@@ -154,15 +132,7 @@ def test_audiomnist(model, device, test_loader):
     print(f"\nModel accuracy: {accuracy}")
 
 
-def train_mnist(
-        model,
-        device,
-        train_loader,
-        test_loader,
-        epochs: int = 14,
-        log_interval: int = 50,
-        save_model: bool = True
-):
+def train_mnist(model, device, train_loader, test_loader, epochs: int = 14, log_interval: int = 50, save_model: bool = True):
     """
     Train a simple MNIST classifier. MNIST classification code adapted from
     https://github.com/pytorch/examples/blob/master/mnist/main.py
@@ -194,9 +164,11 @@ def train_mnist(
             loss.backward()
             optimizer.step()
             if batch_idx % log_interval == 0:
-                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx * len(data), len(train_loader.dataset),
-                           100. * batch_idx / len(train_loader), loss.item()))
+                print(
+                    "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                        epoch, batch_idx * len(data), len(train_loader.dataset), 100.0 * batch_idx / len(train_loader), loss.item()
+                    )
+                )
 
         # validation step
         model.eval()  # evaluation mode
@@ -206,15 +178,17 @@ def train_mnist(
             for data, target in test_loader:
                 data, target = data.to(device), target.to(device)
                 output = model(data)
-                test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+                test_loss += F.nll_loss(output, target, reduction="sum").item()  # sum up batch loss
                 pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
         test_loss /= len(test_loader.dataset)
 
-        print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-            test_loss, correct, len(test_loader.dataset),
-            100. * correct / len(test_loader.dataset)))
+        print(
+            "\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n".format(
+                test_loss, correct, len(test_loader.dataset), 100.0 * correct / len(test_loader.dataset)
+            )
+        )
 
         scheduler.step()
 
@@ -240,6 +214,4 @@ def test_mnist(model, device, test_loader):
 
     test_loss /= len(test_loader.dataset)
 
-    print('\nTest Accuracy: {}/{} ({:.0f}%)\n'.format(
-        correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+    print("\nTest Accuracy: {}/{} ({:.0f}%)\n".format(correct, len(test_loader.dataset), 100.0 * correct / len(test_loader.dataset)))

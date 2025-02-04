@@ -1,8 +1,9 @@
 import io
-import torch
-import torchvision.utils as vutils
+
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
+import torchvision.utils as vutils
 from PIL import Image
 from torchvision.transforms import ToTensor
 
@@ -15,17 +16,12 @@ def make_grid(batch: torch.Tensor, size: int, title: str = "Training Images"):
     # check that a square grid of the given size can be plotted
     assert batch.shape[0] >= size * size
 
-    images = batch[:size * size, ...].detach().cpu()
+    images = batch[: size * size, ...].detach().cpu()
 
     fig = plt.figure(figsize=(size, size))
     plt.axis("off")
     plt.title(title)
-    plt.imshow(
-        np.transpose(
-            vutils.make_grid(images, padding=2, normalize=True),
-            (1, 2, 0)
-        )
-    )
+    plt.imshow(np.transpose(vutils.make_grid(images, padding=2, normalize=True), (1, 2, 0)))
 
     # save plot to buffer
     buf = io.BytesIO()
@@ -44,8 +40,8 @@ def make_loss_plot(max_epochs: int, loss_d: np.ndarray, loss_g: np.ndarray):
     """
     fig = plt.figure()
     plt.xlim((0, max_epochs))
-    plt.plot(range(0, max_epochs), loss_d, label='discriminator')
-    plt.plot(range(0, max_epochs), loss_g, label='generator')
+    plt.plot(range(0, max_epochs), loss_d, label="discriminator")
+    plt.plot(range(0, max_epochs), loss_g, label="generator")
     plt.legend()
 
     # save plot to buffer
@@ -65,8 +61,8 @@ def make_score_plot(max_epochs: int, scores_real: np.ndarray, scores_fake: np.nd
     """
     fig = plt.figure()
     plt.xlim((0, max_epochs))
-    plt.plot(range(0, max_epochs), scores_real, label='real')
-    plt.plot(range(0, max_epochs), scores_fake, label='generated')
+    plt.plot(range(0, max_epochs), scores_real, label="real")
+    plt.plot(range(0, max_epochs), scores_fake, label="generated")
     plt.legend()
 
     # save plot to buffer

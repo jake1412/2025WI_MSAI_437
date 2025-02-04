@@ -1,14 +1,13 @@
 import numpy as np
 from numpy import pi
 
-
 ################################################################################
 # Datasets
 ################################################################################
 
 
 def make_noise_dataset(
-        examples_per_class: int,
+    examples_per_class: int,
 ):
     x1 = np.linspace(-1, 1, examples_per_class // 2)
     x2 = np.linspace(-1, 1, examples_per_class // 2)
@@ -24,10 +23,7 @@ def make_noise_dataset(
     return x, y
 
 
-def make_two_gaussians_data(
-        examples_per_class: int,
-        distance_between_means: float
-):
+def make_two_gaussians_data(examples_per_class: int, distance_between_means: float):
     """
     Create a 2-dimensional set of points, where half the points are drawn from
     one Gaussian distribution and the other half are drawn from a different Gaussian
@@ -62,7 +58,7 @@ def make_two_gaussians_data(
     # wrap it up and ship it out!
     data = np.concatenate([posData, negData])
     labels = np.concatenate([posL, negL])
-    
+
     # shuffle the data
     perm = np.random.permutation(len(labels))
     data = data[perm]
@@ -92,7 +88,7 @@ def make_XOR_data(examples_per_class: int):
     cov = [[1, 0], [0, 1]]
 
     # make a circular unit Gaussian and sample from it
-    data = np.random.multivariate_normal(mean, cov, examples_per_class*2)
+    data = np.random.multivariate_normal(mean, cov, examples_per_class * 2)
 
     x = data.T[0]
     y = data.T[1]
@@ -103,14 +99,11 @@ def make_XOR_data(examples_per_class: int):
     perm = np.random.permutation(len(labels))
     data = data[perm]
     labels = labels[perm]
-        
+
     return data, labels
 
 
-def make_center_surround_data(
-        examples_per_class: int,
-        distance_from_origin: float
-):
+def make_center_surround_data(examples_per_class: int, distance_from_origin: float):
     """
     Create a 2-dimensional set of points, where half the points are drawn from
     one Gaussian centered on the origin and the other half form a ring around
@@ -166,7 +159,7 @@ def make_center_surround_data(
     perm = np.random.permutation(len(labels))
     data = data[perm]
     labels = labels[perm]
-        
+
     return data, labels
 
 
@@ -186,16 +179,16 @@ def make_spiral_data(examples_per_class):
     labels    A numpy vector with 2*examples_per_class, with a +1 or -1 in each
               element. The jth element is the label of the jth example"""
 
-    theta = np.sqrt(np.random.rand(examples_per_class))*2*pi
+    theta = np.sqrt(np.random.rand(examples_per_class)) * 2 * pi
 
     # make points in a spiral that have some randomness
-    r_a = 2*theta + pi
-    temp = np.array([np.cos(theta)*r_a, np.sin(theta)*r_a]).T
+    r_a = 2 * theta + pi
+    temp = np.array([np.cos(theta) * r_a, np.sin(theta) * r_a]).T
     negData = temp + np.random.randn(examples_per_class, 2)
 
     # make points in a spiral offset from the first one that have some randomness
-    r_b = -2*theta - pi
-    temp = np.array([np.cos(theta)*r_b, np.sin(theta)*r_b]).T
+    r_b = -2 * theta - pi
+    temp = np.array([np.cos(theta) * r_b, np.sin(theta) * r_b]).T
     posData = temp + np.random.randn(examples_per_class, 2)
 
     # give labels to the data
@@ -210,5 +203,5 @@ def make_spiral_data(examples_per_class):
     perm = np.random.permutation(len(labels))
     data = data[perm]
     labels = labels[perm]
-        
+
     return data, labels

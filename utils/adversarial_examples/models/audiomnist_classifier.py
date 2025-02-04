@@ -1,65 +1,47 @@
-import torch
-import math
 import decimal
+import math
+
+import torch
 from torch import nn
 
 
 class CNN(nn.Module):
     """Adaptation of AudioNet (arXiv:1807.03418)."""
 
-    def __init__(self,
-                 input_dim=16000,  # 1s @ 16kHz
-                 n_classes=10      # 10 digits
-                 ):
+    def __init__(self, input_dim=16000, n_classes=10):  # 1s @ 16kHz  # 10 digits
         super().__init__()
 
         self.conv1 = nn.Sequential(
-            nn.Conv1d(1, 100, kernel_size=3, stride=1, padding=2),
-            nn.BatchNorm1d(100),
-            nn.ReLU(),
-            nn.MaxPool1d(3, stride=2))
+            nn.Conv1d(1, 100, kernel_size=3, stride=1, padding=2), nn.BatchNorm1d(100), nn.ReLU(), nn.MaxPool1d(3, stride=2)
+        )
 
         self.conv2 = nn.Sequential(
-            nn.Conv1d(100, 64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(100, 64, kernel_size=3, stride=1, padding=1), nn.BatchNorm1d(64), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         self.conv3 = nn.Sequential(
-            nn.Conv1d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(64, 128, kernel_size=3, stride=1, padding=1), nn.BatchNorm1d(128), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         self.conv4 = nn.Sequential(
-            nn.Conv1d(128, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(128, 128, kernel_size=3, stride=1, padding=1), nn.BatchNorm1d(128), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         self.conv5 = nn.Sequential(
-            nn.Conv1d(128, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(128, 128, kernel_size=3, stride=1, padding=1), nn.BatchNorm1d(128), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         self.conv6 = nn.Sequential(
-            nn.Conv1d(128, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(128, 128, kernel_size=3, stride=1, padding=1), nn.BatchNorm1d(128), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         self.conv7 = nn.Sequential(
-            nn.Conv1d(128, 64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(128, 64, kernel_size=3, stride=1, padding=1), nn.BatchNorm1d(64), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         self.conv8 = nn.Sequential(
-            nn.Conv1d(64, 32, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm1d(32),
-            nn.ReLU(),
-            nn.MaxPool1d(2, stride=2))
+            nn.Conv1d(64, 32, kernel_size=3, stride=1, padding=0), nn.BatchNorm1d(32), nn.ReLU(), nn.MaxPool1d(2, stride=2)
+        )
 
         # compute necessary dimensions of final linear layer
         conv_shape = self._compute_output_size(input_dim)
@@ -101,19 +83,17 @@ class AudioNet(nn.Module):
     adapted from Adversarial Robustness Toolbox (https://tinyurl.com/54sdatn3)
     """
 
-    def __init__(self,
-                 input_dim: int = 16000,
-                 n_classes: int = 10,
-                 normalize: bool = True,
-                 ):
+    def __init__(
+        self,
+        input_dim: int = 16000,
+        n_classes: int = 10,
+        normalize: bool = True,
+    ):
         super().__init__()
 
         self.normalize = normalize
 
-        self.cnn = CNN(
-            input_dim=input_dim,
-            n_classes=n_classes
-        )
+        self.cnn = CNN(input_dim=input_dim, n_classes=n_classes)
 
     def load_weights(self, path: str):
         """
@@ -132,9 +112,7 @@ class AudioNet(nn.Module):
     def forward(self, x: torch.Tensor):
 
         if self.normalize:
-            x = (1.0 / torch.max(
-                torch.abs(x) + 1e-8, dim=-1, keepdim=True
-            )[0]) * x * 0.95
+            x = (1.0 / torch.max(torch.abs(x) + 1e-8, dim=-1, keepdim=True)[0]) * x * 0.95
 
         return self.cnn(x)
 

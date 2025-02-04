@@ -1,9 +1,8 @@
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+
 import torch
 import torch.nn as nn
-
 from tqdm import tqdm
-
-from typing import Optional, List, Union, Tuple, TYPE_CHECKING
 
 
 class FrequencyMaskingLoss(nn.Module):
@@ -11,13 +10,16 @@ class FrequencyMaskingLoss(nn.Module):
     Adapted from Adversarial Robustness Toolkit (ART) implementation of Qin et al.
     frequency-masking attack (ICML, 2019). See: https://bit.ly/3lmmNXn
     """
-    def __init__(self,
-                 alpha: Union[float, torch.Tensor] = 1e-6,
-                 window_size: int = 512,
-                 hop_size: int = 128,
-                 sample_rate: int = 16000,
-                 pad: bool = True,
-                 normalize: str = None):
+
+    def __init__(
+        self,
+        alpha: Union[float, torch.Tensor] = 1e-6,
+        window_size: int = 512,
+        hop_size: int = 128,
+        sample_rate: int = 16000,
+        pad: bool = True,
+        normalize: str = None,
+    ):
 
         super().__init__()
 
@@ -27,16 +29,15 @@ class FrequencyMaskingLoss(nn.Module):
 
         # full-overlap: hop size must divide window size
         if self.window_size % self.hop_size:
-            raise ValueError(f"Full-overlap: hop size {self.hop_size} must "
-                             f"divide window size {self.window_size}")
+            raise ValueError(f"Full-overlap: hop size {self.hop_size} must " f"divide window size {self.window_size}")
 
         self.masker = PsychoacousticMasker(window_size, hop_size, sample_rate)
 
         self.pad = pad  # pad audio to avoid boundary artifacts due to framing
 
         # normalize incoming audio to deal with loss scale-dependence
-        if normalize not in [None, 'none', 'peak']:
-            raise ValueError(f'Invalid normalization {normalize}')
+        if normalize not in [None, "none", "peak"]:
+            raise ValueError(f"Invalid normalization {normalize}")
         self.normalize = normalize
         self.peak = None
 
@@ -84,30 +85,19 @@ class FrequencyMaskingLoss(nn.Module):
 
         return masking_threshold_stabilized, psd_maximum_stabilized
 
-    def _masking_hinge_loss(
-            self,
-            perturbation: torch.Tensor,
-            psd_maximum_stabilized: torch.Tensor,
-            masking_threshold_stabilized: torch.Tensor
-    ):
+    def _masking_hinge_loss(self, perturbation: torch.Tensor, psd_maximum_stabilized: torch.Tensor, masking_threshold_stabilized: torch.Tensor):
 
         n_batch = perturbation.shape[0]
 
         # calculate approximate power spectral density
-        psd_perturbation = self._approximate_power_spectral_density(
-            perturbation, psd_maximum_stabilized
-        )
+        psd_perturbation = self._approximate_power_spectral_density(perturbation, psd_maximum_stabilized)
 
         # calculate hinge loss per input, averaged over frames
-        loss = nn.functional.relu(
-            psd_perturbation - masking_threshold_stabilized
-        ).view(n_batch, -1).mean(-1)
+        loss = nn.functional.relu(psd_perturbation - masking_threshold_stabilized).view(n_batch, -1).mean(-1)
 
         return loss
 
-    def _approximate_power_spectral_density(
-            self, perturbation: torch.Tensor, psd_maximum_stabilized: torch.Tensor
-    ):
+    def _approximate_power_spectral_density(self, perturbation: torch.Tensor, psd_maximum_stabilized: torch.Tensor):
         """
         Approximate the power spectral density for a perturbation
         """
@@ -141,8 +131,7 @@ class FrequencyMaskingLoss(nn.Module):
 
     def forward(self, x_adv: torch.Tensor, x_ref: torch.Tensor = None):
 
-        self.peak = torch.max(
-            torch.abs(x_ref) + 1e-12, dim=-1, keepdim=True)[0]
+        self.peak = torch.max(torch.abs(x_ref) + 1e-12, dim=-1, keepdim=True)[0]
 
         x_adv = self._normalize(x_adv)
 
@@ -155,9 +144,7 @@ class FrequencyMaskingLoss(nn.Module):
             perturbation = x_adv - self.ref_wav
             masking_threshold, psd_maximum = self.ref_thresh, self.ref_psd
 
-        loss = self._masking_hinge_loss(  # do not reduce across batch dimension
-            perturbation, psd_maximum, masking_threshold
-        )
+        loss = self._masking_hinge_loss(perturbation, psd_maximum, masking_threshold)  # do not reduce across batch dimension
 
         # scale loss
         scaled_loss = self.alpha * loss
@@ -170,8 +157,7 @@ class FrequencyMaskingLoss(nn.Module):
         :param x_ref: waveform inputs of shape (n_batch, ...)
         """
 
-        self.peak = torch.max(
-            torch.abs(x_ref) + 1e-12, dim=-1, keepdim=True)[0]
+        self.peak = torch.max(torch.abs(x_ref) + 1e-12, dim=-1, keepdim=True)[0]
 
         self.ref_wav = self._normalize(x_ref.clone().detach())
         self.ref_thresh, self.ref_psd = self._stabilized_threshold_and_psd_maximum(self.ref_wav)
@@ -209,9 +195,7 @@ class PsychoacousticMasker:
         self._bark = None
         self._absolute_threshold_hearing = None
 
-    def calculate_threshold_and_psd_maximum(self,
-                                            audio: torch.Tensor
-                                            ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def calculate_threshold_and_psd_maximum(self, audio: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Compute the global masking threshold for an audio input and also return
         its maximum power spectral density. This is the main method to call in
@@ -243,9 +227,7 @@ class PsychoacousticMasker:
             maskers, masker_idx = self.filter_maskers(*self.find_maskers(psd_matrix[..., frame]))
 
             # apply methods for calculating global threshold
-            threshold[..., frame] = self.calculate_global_threshold(
-                self.calculate_individual_threshold(maskers, masker_idx)
-            )
+            threshold[..., frame] = self.calculate_global_threshold(self.calculate_individual_threshold(maskers, masker_idx))
 
         return threshold, psd_max
 
@@ -296,27 +278,16 @@ class PsychoacousticMasker:
         left = flat[1:-1] - flat[:-2]
         right = flat[1:-1] - flat[2:]
 
-        ind = torch.where((left > 0) * (right > 0),
-                          torch.ones_like(left),
-                          torch.zeros_like(left))
+        ind = torch.where((left > 0) * (right > 0), torch.ones_like(left), torch.zeros_like(left))
         ind = torch.nn.functional.pad(ind, (1, 1), "constant", 0)
         masker_idx = torch.nonzero(ind, out=None).cpu().reshape(-1)
 
         # smooth maskers with their direct neighbors
-        psd_maskers = 10 * torch.log10(
-            torch.sum(
-                torch.cat(
-                    [10 ** (psd_vector[..., masker_idx + i] / 10) for i in range(-1, 2)]
-                ),
-                dim=0
-            )
-        )
+        psd_maskers = 10 * torch.log10(torch.sum(torch.cat([10 ** (psd_vector[..., masker_idx + i] / 10) for i in range(-1, 2)]), dim=0))
 
         return psd_maskers, masker_idx
 
-    def filter_maskers(self,
-                       maskers: torch.Tensor,
-                       masker_idx: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def filter_maskers(self, maskers: torch.Tensor, masker_idx: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Filter maskers. First, discard all maskers that are below the absolute threshold
         of hearing. Second, reduce pairs of maskers that are within 0.5 bark distance of
@@ -384,9 +355,7 @@ class PsychoacousticMasker:
         :return: Bark scale for discrete fourier transform sample frequencies.
         """
         if self._bark is None:
-            self._bark = 13 * torch.arctan(0.00076 * self.fft_frequencies) + 3.5 * torch.arctan(
-                torch.square(self.fft_frequencies / 7500.0)
-            )
+            self._bark = 13 * torch.arctan(0.00076 * self.fft_frequencies) + 3.5 * torch.arctan(torch.square(self.fft_frequencies / 7500.0))
         return self._bark
 
     @property
@@ -403,16 +372,14 @@ class PsychoacousticMasker:
             # outside valid ATH domain, set values to -infinity
             # note: This ensures that every possible masker in the bins <=20Hz is valid. As a consequence, the global
             # masking threshold formula will always return a value different to infinity
-            self._absolute_threshold_hearing = torch.ones(valid_domain.shape) * -float('inf')
+            self._absolute_threshold_hearing = torch.ones(valid_domain.shape) * -float("inf")
 
             self._absolute_threshold_hearing[valid_domain] = (
-                    3.64 * pow(freq, -0.8) - 6.5 * torch.exp(-0.6 * torch.square(freq - 3.3)) + 0.001 * pow(freq, 4) - 12
+                3.64 * pow(freq, -0.8) - 6.5 * torch.exp(-0.6 * torch.square(freq - 3.3)) + 0.001 * pow(freq, 4) - 12
             )
         return self._absolute_threshold_hearing
 
-    def calculate_individual_threshold(self,
-                                       maskers: torch.Tensor,
-                                       masker_idx: torch.Tensor) -> torch.Tensor:
+    def calculate_individual_threshold(self, maskers: torch.Tensor, masker_idx: torch.Tensor) -> torch.Tensor:
         """
         Calculate individual masking threshold with frequency denoted at bark scale.
 
